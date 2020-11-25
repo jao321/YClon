@@ -28,6 +28,7 @@ def build_kmers_tf_idf(sequence, ksize=3):
 filename =  sys.argv[1]
 method = "AHAM"
 thr = 0.09
+sequence_column = "cdr3"
 
 
 for x in range(1,len(sys.argv)):
@@ -37,6 +38,8 @@ for x in range(1,len(sys.argv)):
     method = sys.argv[x+1]
   elif sys.argv[x].find("--thr") != -1:
     thr = float(sys.argv[x+1])
+  elif sys.argv[x].find("--sequence") != -1:
+    sequence_column = sys.argv[x+1]
 
 
 
@@ -75,7 +78,7 @@ for x in f:
 
     seq_id_indx = data.index("sequence_id")
     try:
-      junc_indx = data.index("cdr3")
+      junc_indx = data.index(sequence_column)
     except:
       print("There is no column named cdr3")
     vGene_indx = data.index("v_call")
@@ -105,7 +108,7 @@ with alive_bar(len(clonotypes), title="Clonotyping") as bar:
       teste = pd.DataFrame(clonotypes[key])
       teste.columns = colunas
 
-      junc_seq = teste['cdr3']
+      junc_seq = teste[sequence_column]
       seq_id = teste['sequence_id']
 
       vectorizer = TfidfVectorizer(min_df=1, analyzer=build_kmers_tf_idf)
