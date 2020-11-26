@@ -132,10 +132,7 @@ with alive_bar(len(clonotypes), title="Clonotyping") as bar:
         
         temp.write(str(seq_id[i])+","+str(clone_id)+"\n")	
       count = maior
-
-
       total_clust += cluster_teste.labels_.max() + 1	
-
     else:
       unico_pq_VJLen +=1
       count += 1
@@ -145,7 +142,6 @@ with alive_bar(len(clonotypes), title="Clonotyping") as bar:
       seq_id = teste['sequence_id']
       for i in range(0, len(clonotypes[key])):
         temp.write(str(seq_id[i])+","+str(count)+"\n")
-    
 
 
 
@@ -184,7 +180,7 @@ with alive_bar(file_size, title="Writing output file") as bar:
       if data[0] in clonotipo:
         for i in range(0, len(data)):
           out.write(data[i].strip()+"\t")
-          out.write(clonotipo[data[0]])
+        out.write(clonotipo[data[0]])
     else:
       out.write(x.strip()+"\t"+"clone_id\n")
 
@@ -199,4 +195,4 @@ current_time = time.time()
 elapsed_time = current_time - start_time
 
 
-print("Terminou iteração em: " + "%.3f" % int(elapsed_time))
+print("The work was completed in: " + "%.3f" % int(elapsed_time))
