@@ -15,10 +15,9 @@ import sparse_dot_topn.sparse_dot_topn as ct
 
 def directory_path(file_path):
   OS = platform.system()
-  if OS != "Windows":
-    temp =  file_path.split(os.sep)
-    file_path = file_path.replace(temp[len(temp)-1],"")
-    return(file_path)
+  temp =  file_path.split(os.sep)
+  file_path = file_path.replace(temp[len(temp)-1],"")
+  return(file_path)
 
 def build_kmers_tf_idf(sequence, ksize=3): 
     ngrams = zip(*[sequence[i:] for i in range(ksize)])
@@ -29,7 +28,9 @@ filename =  sys.argv[1]
 method = "AHAM"
 thr = 0.09
 sequence_column = "cdr3"
-
+vcolumn = "v_call"
+jcolumn = "j_call"
+seqID = "sequence_id"
 
 for x in range(1,len(sys.argv)):
   if sys.argv[x].find("--input") != -1:
@@ -40,6 +41,13 @@ for x in range(1,len(sys.argv)):
     thr = float(sys.argv[x+1])
   elif sys.argv[x].find("--sequence") != -1:
     sequence_column = sys.argv[x+1]
+  elif sys.argv[x].find("--v_gene") != -1:
+    vcolumn = sys.argv[x+1]
+  elif sys.argv[x].find("--j_gene") != -1:
+    jcolumn = sys.argv[x+1]
+  elif sys.argv[x].find("--seq_id") != -1:
+    seqID = sys.argv[x+1]
+
 
 
 
@@ -76,13 +84,13 @@ for x in f:
     x = x.strip()
     data = x.split("\t")
 
-    seq_id_indx = data.index("sequence_id")
+    seq_id_indx = data.index(seqID)
     try:
       junc_indx = data.index(sequence_column)
     except:
       print("There is no column named cdr3")
-    vGene_indx = data.index("v_call")
-    jGene_indx = data.index("j_call")
+    vGene_indx = data.index(vcolumn)
+    jGene_indx = data.index(jcolumn)
     colunas = [data[seq_id_indx],data[junc_indx]]
     # print(colunas)
 
@@ -195,4 +203,4 @@ current_time = time.time()
 elapsed_time = current_time - start_time
 
 
-print("The work was completed in: " + "%.3f" % int(elapsed_time))
+print("The work was completed in: " + "%.3f" % int(elapsed_time) + "seconds")
