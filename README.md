@@ -16,7 +16,7 @@ If you would like to use the default settings you should follow the name of the 
 
 If you would like to change the settings you can use the following arguments
 
-usage: YClon.py [--input INPUT_FILE]\n 
+usage: YClon.py [--input INPUT_FILE] 
                 [--method {AHAM (default), HDBSCAN}]
                 [--thr THRESHOLD_VALUE (0.09 as default)]
                 [--sequence SEQUENCE_COLUMN_NAME (cdr3 as default)]
