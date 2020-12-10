@@ -31,6 +31,7 @@ sequence_column = "cdr3"
 vcolumn = "v_call"
 jcolumn = "j_call"
 seqID = "sequence_id"
+separator = "\t"
 
 for x in range(1,len(sys.argv)):
   if sys.argv[x].find("--input") != -1:
@@ -47,6 +48,8 @@ for x in range(1,len(sys.argv)):
     jcolumn = sys.argv[x+1]
   elif sys.argv[x].find("--seq_id") != -1:
     seqID = sys.argv[x+1]
+  elif sys.argv[x].find("--sep") != -1:
+    separator = sys.argv[x+1]
 
 
 
@@ -69,7 +72,7 @@ for x in f:
   file_size +=1
   if  x.find ("Processed") == -1 and x.find("sequence_id") == -1:
     x = x.strip()
-    data = x.split("\t") 
+    data = x.split(separator) 
     try:
       cdr3len = str(len(data[junc_indx]))
       vGene = data[vGene_indx].split('*') #include all v gene alleles
@@ -82,7 +85,7 @@ for x in f:
       fail +=1
   else:
     x = x.strip()
-    data = x.split("\t")
+    data = x.split(separator)
 
     seq_id_indx = data.index(seqID)
     try:
@@ -184,13 +187,13 @@ with alive_bar(file_size, title="Writing output file") as bar:
   for x in in_airr:
     bar()
     if x.find("sequence_id") == -1:
-      data = x.split('\t')
+      data = x.split(separator)
       if data[0] in clonotipo:
         for i in range(0, len(data)):
-          out.write(data[i].strip()+"\t")
+          out.write(data[i].strip()+separator)
         out.write(clonotipo[data[0]])
     else:
-      out.write(x.strip()+"\t"+"clone_id\n")
+      out.write(x.strip()+separator+"clone_id\n")
 
 
 
@@ -203,4 +206,4 @@ current_time = time.time()
 elapsed_time = current_time - start_time
 
 
-print("The work was completed in: " + "%.3f" % int(elapsed_time) + "seconds")
+print("The work was completed in: " + "%.3f" % int(elapsed_time))
