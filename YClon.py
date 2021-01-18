@@ -189,11 +189,13 @@ with alive_bar(file_size, title="Writing output file") as bar:
     bar()
     if x.find(seqID) == -1:
       data = x.split(separator)
-      if data[0] in clonotipo:
+      if data[seq_id_indx] in clonotipo:
         for i in range(0, len(data)):
           out.write(data[i].strip()+separator)
-        out.write(clonotipo[data[0]])
+        out.write(clonotipo[data[seq_id_indx]])
     else:
+      data = x.split(separator)
+      seq_id_indx = data.index(seqID)
       out.write(x.strip()+separator+"clone_id\n")
 
 
