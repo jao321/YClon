@@ -70,9 +70,9 @@ file_size = 0
 print("Processing file")
 for x in f:
   file_size +=1
-  if  x.find ("Processed") == -1 and x.find("sequence_id") == -1:
+  if x.find(seqID) == -1:
     x = x.strip()
-    data = x.split(separator) 
+    data = x.split(separator)
     try:
       cdr3len = str(len(data[junc_indx]))
       vGene = data[vGene_indx].split('*') #include all v gene alleles
@@ -120,7 +120,7 @@ with alive_bar(len(clonotypes), title="Clonotyping") as bar:
       teste.columns = colunas
 
       junc_seq = teste[sequence_column]
-      seq_id = teste['sequence_id']
+      seq_id = teste[seqID]
 
       vectorizer = TfidfVectorizer(min_df=1, analyzer=build_kmers_tf_idf)
       tf_idf_matrix = vectorizer.fit_transform(junc_seq)  
@@ -150,7 +150,7 @@ with alive_bar(len(clonotypes), title="Clonotyping") as bar:
       total_clust += 1
       teste = pd.DataFrame(clonotypes[key])
       teste.columns = colunas
-      seq_id = teste['sequence_id']
+      seq_id = teste[seqID]
       for i in range(0, len(clonotypes[key])):
         temp.write(str(seq_id[i])+","+str(count)+"\n")
 
@@ -186,7 +186,7 @@ for i in maior:
 with alive_bar(file_size, title="Writing output file") as bar:
   for x in in_airr:
     bar()
-    if x.find("sequence_id") == -1:
+    if x.find(seqID) == -1:
       data = x.split(separator)
       if data[0] in clonotipo:
         for i in range(0, len(data)):
