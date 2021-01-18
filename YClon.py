@@ -162,7 +162,8 @@ with alive_bar(len(clonotypes), title="Clonotyping") as bar:
 
 in_temp = open(temp_filename, 'r')
 in_airr = open(filename, 'r')
-out_filename = filename.replace(".tsv","_YClon_clonotyped.tsv")
+filename_temp = filename.split(".")
+out_filename = filename_temp[0]+"_YClon_clonotyped."+filename_temp[1]
 out = open(out_filename, 'w+')
 clonotipo = {}
 maior ={}
