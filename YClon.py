@@ -6,12 +6,14 @@ from alive_progress import alive_bar
 import pandas as pd
 import numpy as np
 from collections import defaultdict
-from sklearn.feature_extraction.text import TfidfVectorizer
+# from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.cluster import AgglomerativeClustering
 import hdbscan
 import sparse_dot_topn.sparse_dot_topn as ct
 
+version = "1.2.3 - october 1st 2021"
 
 def directory_path(file_path):
   OS = platform.system()
@@ -26,13 +28,16 @@ def build_kmers_tf_idf(sequence, ksize=3):
 
 filename =  sys.argv[1]
 method = "AHAM"
-thr = 0.09
+thr = 0.17
 sequence_column = "cdr3"
 vcolumn = "v_call"
 jcolumn = "j_call"
 seqID = "sequence_id"
 separator = "\t"
 
+if sys.argv[1] == "--version":
+  print("Yclon version "+version)
+  exit()
 for x in range(1,len(sys.argv)):
   if sys.argv[x].find("--input") != -1:
     filename = sys.argv[x+1]
@@ -73,7 +78,11 @@ for x in f:
   if x.find(seqID) == -1:
     x = x.strip()
     data = x.split(separator)
+    if len(data)!= number_of_columns:
+      continue
     try:
+      if len(data[junc_indx]) < 4:
+        continue
       cdr3len = str(len(data[junc_indx]))
       vGene = data[vGene_indx].split('*') #include all v gene alleles
       jGene = data[jGene_indx].split('*') #include all v gene alleles
@@ -86,6 +95,7 @@ for x in f:
   else:
     x = x.strip()
     data = x.split(separator)
+    number_of_columns = len(data)
 
     seq_id_indx = data.index(seqID)
     try:
@@ -115,6 +125,8 @@ a = 0
 with alive_bar(len(clonotypes), title="Clonotyping") as bar: 
   for key in clonotypes: #each key is the combination of V gene, J gene and the length of cdr3, the values are the sequence ID and cdr3 sequence
     bar()
+    # if bar.current() == 3336:
+    #   print(clonotypes[key])
     if len(clonotypes[key]) > 1:
       teste = pd.DataFrame(clonotypes[key])
       teste.columns = colunas
@@ -122,7 +134,9 @@ with alive_bar(len(clonotypes), title="Clonotyping") as bar:
       junc_seq = teste[sequence_column]
       seq_id = teste[seqID]
 
-      vectorizer = TfidfVectorizer(min_df=1, analyzer=build_kmers_tf_idf)
+
+      # vectorizer = TfidfVectorizer(min_df=1, analyzer=build_kmers_tf_idf)
+      vectorizer = CountVectorizer(min_df=1, analyzer=build_kmers_tf_idf)
       tf_idf_matrix = vectorizer.fit_transform(junc_seq)  
       dist = 1 - cosine_similarity(tf_idf_matrix)
       if method ==  "AHAM":
