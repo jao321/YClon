@@ -11,7 +11,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.cluster import AgglomerativeClustering
 
-version = "1.2.3 - october 1st 2021"
+version = "1.2.4 - october 1st 2021"
 
 def directory_path(file_path):
   OS = platform.system()
