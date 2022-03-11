@@ -17,7 +17,6 @@ If you would like to use the default settings you should follow the name of the 
 If you would like to change the settings you can use the following arguments
 
 usage: YClon.py [--input INPUT_FILE] 
-                [--method {AHAM (default), HDBSCAN}]
                 [--thr THRESHOLD_VALUE (0.09 as default)]
                 [--sequence SEQUENCE_COLUMN_NAME (cdr3 as default)]
                 [--v_gene V GENE COLUMN NAME]
@@ -25,6 +24,6 @@ usage: YClon.py [--input INPUT_FILE]
                 [--seq_id SEQUENCE ID COLUMN NAME]
                 [--sep SEPARATOR ON THE FILE]
                 
-                Python3 path/YClon.py --input YClon_input_test_airr_only_essential_info.tsv --thr 0.15 --method HDBSCAN
+                Python3 path/YClon.py --input YClon_input_test_airr_only_essential_info.tsv --thr 0.15
 
 The output file will be written in the same folder as the input file, but with "_YClon_clonotyped" add to its name.
