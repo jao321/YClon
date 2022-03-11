@@ -27,3 +27,8 @@ usage: YClon.py [--input INPUT_FILE]
                 python3 path/YClon.py --input YClon_input_test_airr_only_essential_info.tsv --thr 0.15
 
 The output file will be written in the same folder as the input file, but with "_YClon_clonotyped" add to its name.
+
+
+You can also run YClon via the Colab notebook:
+
+https://colab.research.google.com/drive/1vQFF8e2hxMAeDSJNooVx6zaJ2hzPVbuH?usp=sharing
