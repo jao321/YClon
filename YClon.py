@@ -10,8 +10,6 @@ from collections import defaultdict
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.cluster import AgglomerativeClustering
-import hdbscan
-import sparse_dot_topn.sparse_dot_topn as ct
 
 version = "1.2.3 - october 1st 2021"
 
