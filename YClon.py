@@ -26,7 +26,7 @@ def build_kmers_tf_idf(sequence, ksize=3):
 
 filename =  sys.argv[1]
 method = "AHAM"
-thr = 0.17
+thr = 0.09
 sequence_column = "cdr3"
 vcolumn = "v_call"
 jcolumn = "j_call"
