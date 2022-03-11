@@ -12,7 +12,7 @@ Copy YClon.py into a folder.
 In a terminal you can execute Python3 with YClon script. 
 If you would like to use the default settings you should follow the name of the script with the filename. If the file is in the same folder as YClon.py there is no need for the path:
             
-              Python3 path/YClon.py YClon_input_test_airr_only_essential_info.tsv
+              python3 path/YClon.py YClon_input_test_airr_only_essential_info.tsv
 
 If you would like to change the settings you can use the following arguments
 
@@ -24,6 +24,6 @@ usage: YClon.py [--input INPUT_FILE]
                 [--seq_id SEQUENCE ID COLUMN NAME]
                 [--sep SEPARATOR ON THE FILE]
                 
-                Python3 path/YClon.py --input YClon_input_test_airr_only_essential_info.tsv --thr 0.15
+                python3 path/YClon.py --input YClon_input_test_airr_only_essential_info.tsv --thr 0.15
 
 The output file will be written in the same folder as the input file, but with "_YClon_clonotyped" add to its name.
