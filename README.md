@@ -5,7 +5,7 @@ Installation: Make sure you have a Python 3.7.3 or later version and pip3 instal
               It uses the following python libraries that are not standard: alive_progress,pandas, numpy, sklearn, hdbscan and sparse_dot_topn. 
               In order to install those libraries you can use pip command:
               
-              pip3 install alive_progress pandas numpy sklearn
+              pip3 install alive_progress pandas numpy scikit-learn
               
 Copy YClon.py into a folder. 
 
