@@ -1,7 +1,16 @@
 #!/usr/bin/env python3
+import sys
+
+version = "1.3.7 - Apr 13th 2023"
+try:
+	if sys.argv.index("--version") != -1 :
+		print("Yclon version "+version)
+		exit()
+except:
+	pass
+
 import os
 import time
-import sys
 import platform
 from alive_progress import alive_bar
 import pandas as pd
@@ -15,10 +24,11 @@ from sklearn.cluster import AgglomerativeClustering
 # import psutil
 # print(psutil.Process().memory_info().rss/(1024 * 1024))
 
-version = "1.3.7 - Apr 13th 2023"
+
 
 #debug writing output
 #add clone_seq_count to the clonotyped file
+#add possibility for changing kmer size, outfile name, out dir name
 
 def directory_path(file_path):
 	OS = platform.system()
@@ -26,15 +36,21 @@ def directory_path(file_path):
 	file_path = file_path.replace(temp[len(temp)-1],"")
 	return(file_path)
 
-def build_kmers_tf_idf(sequence, ksize=3): 
-		ngrams = zip(*[sequence[i:] for i in range(ksize)])
-		return [''.join(ngram) for ngram in ngrams]
-
 def most_common(lst):
     return max(set(lst), key=lst.count)
 
+filename = ""
 
-filename =	sys.argv[1]
+if (any(".tsv" in i for i in sys.argv) == True) and (any("--input" in i for i in sys.argv) == False):
+	filename =	sys.argv[1]
+elif any("--input" in i for i in sys.argv) == False:
+	print("Please provide a file path")
+	exit()
+else:
+	filename = sys.argv[sys.argv.index("--input")+1]
+
+print(filename)
+
 method = "AHAM"
 thr = 0.09
 sequence_column = "cdr3"
@@ -43,12 +59,14 @@ jcolumn = "j_call"
 seqID = "sequence_id"
 separator = "\t"
 memory_usage = "default"
+path = directory_path(filename)
+filename_temp = filename.split(".")
+out_filename = filename_temp[0]+"_YClon_clonotyped."+filename_temp[1]
+ksize = 3
 short_output = False
 every_in_the_folder = False
 
-if sys.argv[1] == "--version":
-	print("Yclon version "+version)
-	exit()
+
 for x in range(1,len(sys.argv)):
 	if sys.argv[x].find("--input") != -1:
 		filename = sys.argv[x+1]
@@ -66,19 +84,30 @@ for x in range(1,len(sys.argv)):
 		seqID = sys.argv[x+1]
 	elif sys.argv[x].find("--sep") != -1:
 		separator = sys.argv[x+1]
+	elif sys.argv[x].find("--kmer_length") != -1:
+		ksize = int(sys.argv[x+1])
 	elif sys.argv[x].find("--low_memory") != -1:
 		memory_usage = "low"
+	elif sys.argv[x].find("--dir_out") != -1:
+		path = sys.argv[x+1]
+		out_filename = os.path.join(path,os.path.basename(out_filename))
+	elif sys.argv[x].find("--out") != -1:
+		out_filename = os.path.join(path,sys.argv[x+1]+"_YClon_clonotyped."+filename_temp[1])
+		path_and_name = os.path.join(path,sys.argv[x+1])
 	elif sys.argv[x].find("--short_output") != -1:
 		short_output = True
-		out_small_name = filename_temp[0]+"_YClon_clonotyped_only_some_columns."+filename_temp[1]
-		if sys.argv[x+1] != "--":
-			out_small_name = sys.argv[x+1]
+		out_small_name = out_filename.replace("_YClon_clonotyped.","_YClon_clonotyped_only_essential_columns.")
+		# os.path.join(path,sys.argv[x+1]+"_YClon_clonotyped_only_essential_columns."+filename_temp[1])
+		# if sys.argv[x+1] != "--":
+		# 	out_small_name = sys.argv[x+1]
 	elif sys.argv[x].find("--folder") != -1:
 		every_in_the_folder = True
 		filename = sys.argv[x+1]
 
 
-
+def build_kmers_tf_idf(sequence, ksize=ksize): 
+		ngrams = zip(*[sequence[i:] for i in range(ksize)])
+		return [''.join(ngram) for ngram in ngrams]
 
 
 start_time = time.time()
@@ -286,7 +315,6 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 	in_temp = open(temp_filename, 'r')
 	in_airr = open(filename, 'r')
 	filename_temp = filename.split(".")
-	out_filename = filename_temp[0]+"_YClon_clonotyped."+filename_temp[1]
 	out = open(out_filename, 'w+')
 	clonotipo = {}
 	maior ={}
@@ -336,19 +364,19 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 		in_airr = open(filename, 'r')
 
 
-		with alive_bar(file_size+1, title="Writing short output file") as bar:
-			for x in in_airr:
-				bar()
-				if x.find(seqID) == -1:
-					data = x.strip().split(separator)
-					if data[seq_id_indx] in clonotipo:
-						out_small.write(data[seq_id_indx]+separator+data[vGene_indx]+separator+data[jGene_indx]+separator+data[junc_indx]+separator)
-						out_small.write(clonotipo[data[seq_id_indx]])
-				else:
-					data = x.split(separator)
-					seq_id_indx = data.index(seqID)
-					out_small.write(seqID+separator+vcolumn+separator+jcolumn+separator+sequence_column+separator+"clone_id\n")
-					#out_small.write(x.strip()+separator+"clone_idn")
+		#with alive_bar(file_size+1, title="Writing short output file") as bar:
+		for x in in_airr:
+			bar()
+			if x.find(seqID) == -1:
+				data = x.strip().split(separator)
+				if data[seq_id_indx] in clonotipo:
+					out_small.write(data[seq_id_indx]+separator+data[vGene_indx]+separator+data[jGene_indx]+separator+data[junc_indx]+separator)
+					out_small.write(clonotipo[data[seq_id_indx]])
+			else:
+				data = x.split(separator)
+				seq_id_indx = data.index(seqID)
+				out_small.write(seqID+separator+vcolumn+separator+jcolumn+separator+sequence_column+separator+"clone_id\n")
+				#out_small.write(x.strip()+separator+"clone_idn")
 
 
 	os.remove(temp_filename)
@@ -357,7 +385,8 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 	temp = open(temp_filename, 'w')
 	out = open(out_filename, 'r')
 
-	out_report = open(filename_temp[0]+"_YClon_clone_report."+filename_temp[1],"w")
+
+	out_report = open(path_and_name+"_YClon_clone_report.tsv","w")
 	out_report.write("sequence_id\tseq_count\tmost_common_cdr3\tclone_id\n")
 	# print(most_common_seq_id)
 	# print(maior)
@@ -382,7 +411,8 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 	current_time = time.time()
 	elapsed_time = current_time - start_time
 
-
+	if short_output == True:
+		os.remove(out_filename)
 	print("The work was completed in: " + "%.3f" % int(elapsed_time))
 
 
