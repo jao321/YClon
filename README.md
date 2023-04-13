@@ -15,6 +15,16 @@ You can [click here to download the repository](https://github.com/jao321/YClon/
               or if you have git installed you can clone the repository with the following command line
               git clone https://github.com/jao321/YClon.git
 
+
+The file to be clonotyped should have at least 4 columns with information of a unique sequence identifier, V gene annotation, J gene annotation and CDR3 or other column that maybe compared. Like the example bellow
+
+| sequence_id | v_call      | j_call   | cdr3                                        |
+|-------------|-------------|----------|---------------------------------------------|
+| 6048431_1   | IGHV1-69*19 | IGHJ3*02 | gcgagccatattttaggatattgtaatagtaccagctgctat  |
+| 26048436_1  | IGHV4-34*01 | IGHJ3*02 | gcgagagtgggaacagcatattgtggtggtgactgctatgatg |
+
+
+
 In a terminal window you can execute Python3 with YClon script. 
 If you would like to use the default settings you should follow the name of the script with the filename. If the file is in the same folder as YClon.py there is no need for the path:
             
