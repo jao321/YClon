@@ -15,9 +15,10 @@ from sklearn.cluster import AgglomerativeClustering
 # import psutil
 # print(psutil.Process().memory_info().rss/(1024 * 1024))
 
-version = "1.3.6 - Jan 17th 2023"
+version = "1.3.7 - Apr 13th 2023"
 
-#debug many columns
+#debug writing output
+#add clone_seq_count to the clonotyped file
 
 def directory_path(file_path):
 	OS = platform.system()
@@ -233,8 +234,6 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 		with alive_bar(len(clonotypes), title="Clonotyping") as bar: 
 			for key in clonotypes: #each key is the combination of V gene, J gene and the length of cdr3, the values are the sequence ID and cdr3 sequence
 				bar()
-				# if bar.current() == 3336:
-				#	 print(clonotypes[key])
 				if len(clonotypes[key]) > 1:
 					teste = pd.DataFrame(clonotypes[key])
 					teste.columns = colunas
@@ -303,15 +302,11 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 		else:
 			maior[data[-1]].append(','.join(data[0:-1]))
 
-	# for x in maior:
-	#	 print(x+" "+str(len(maior[x])))
 	most_common_cdr3 = {}
 	most_common_seq_id = {}
 	seq_list = []
-	# print(clonotipo.keys())
-	# print(clonotipo["M02832:32:000000000-J7757:1:1101:15353:1994|SEQORIENT=FF|PRIMER1=hoLV8f|PRIMER2=IgL1|PRIMERS1CLEVE.FASTA=None|DUPCOUNT=1"])
-	# with alive_bar(file_size, title="Writing output file") as bar: 
-	with alive_bar(file_size, title="Writing output file") as bar:
+ 
+	with alive_bar(file_size+1, title="Writing output file") as bar:
 		for x in in_airr:
 			bar()
 			if x.find(seqID) == -1:
@@ -341,7 +336,7 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 		in_airr = open(filename, 'r')
 
 
-		with alive_bar(file_size, title="Writing short output file") as bar:
+		with alive_bar(file_size+1, title="Writing short output file") as bar:
 			for x in in_airr:
 				bar()
 				if x.find(seqID) == -1:
@@ -352,20 +347,32 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 				else:
 					data = x.split(separator)
 					seq_id_indx = data.index(seqID)
-					# print(type(seqID))
-					# print(type(vGene))
-					# print(type(jGene))
-					# print(type(sequence_column))
 					out_small.write(seqID+separator+vcolumn+separator+jcolumn+separator+sequence_column+separator+"clone_id\n")
 					#out_small.write(x.strip()+separator+"clone_idn")
 
 
-	#os.remove(temp_filename)
+	os.remove(temp_filename)
+	out.close()
+	temp_filename = path+"YClon_temp.txt"
+	temp = open(temp_filename, 'w')
+	out = open(out_filename, 'r')
 
 	out_report = open(filename_temp[0]+"_YClon_clone_report."+filename_temp[1],"w")
 	out_report.write("sequence_id\tseq_count\tmost_common_cdr3\tclone_id\n")
 	# print(most_common_seq_id)
 	# print(maior)
+
+	#write the seq_count of each clone in row
+
+	for x in out:
+		if x.find(seqID) != -1:
+			temp.write(x.strip()+separator+"clone_seq_count\n")
+			i = x.strip().split(separator).index("clone_id")
+		else:
+			temp.write(x.strip()+separator+str(len(maior[x.strip().split(separator)[i]]))+"\n")
+	temp.close()
+	out.close()
+	os.rename(temp_filename,out_filename)
 	for i in most_common_cdr3:
 	  # print(i)
 	  cdr3 = most_common(most_common_cdr3[i])
