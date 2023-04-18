@@ -93,7 +93,7 @@ for x in range(1,len(sys.argv)):
 		out_filename = os.path.join(path,os.path.basename(out_filename))
 	elif sys.argv[x].find("--out") != -1:
 		out_filename = os.path.join(path,sys.argv[x+1]+"_YClon_clonotyped."+filename_temp[1])
-		path_and_name = os.path.join(path,sys.argv[x+1])
+		#path_and_name = os.path.join(path,sys.argv[x+1])
 	elif sys.argv[x].find("--short_output") != -1:
 		short_output = True
 		out_small_name = out_filename.replace("_YClon_clonotyped.","_YClon_clonotyped_only_essential_columns.")
@@ -386,7 +386,7 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 	out = open(out_filename, 'r')
 
 
-	out_report = open(path_and_name+"_YClon_clone_report.tsv","w")
+	out_report = open(out_filename.split("_")[0]+"_YClon_clone_report.tsv","w")
 	out_report.write("sequence_id\tseq_count\tmost_common_cdr3\tclone_id\n")
 	# print(most_common_seq_id)
 	# print(maior)
