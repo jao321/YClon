@@ -1,9 +1,13 @@
 # YClon
-Python3 script used to group B cells into clones (clonotypes) to be used in Mac OS, Linux and Windows 10. By default it takes MiAIRR formated .tsv files.
 
-Installation: Make sure you have a Python 3.7.3 or later version and pip3 installed.
-              It uses the following python libraries that are not on python standard installation: alive_progress,pandas, numpy, sklearn, hdbscan and sparse_dot_topn.
-              To install those libraries you can use pip command:
+YClon is a fast computational method for grouping B cell receptor (BCR) clones, which requires the user to provide a BCR annotated repertoire in the Minimal Information Adaptive Immune Receptor Repertoire (MiAIRR) format. This tool is particularly useful for analyzing antibody repertoires that contain a large number of sequences, such as those with more than 1,000,000 sequences, and for analyzing multiple repertoires simultaneously.
+
+The first step of YClon involves subsetting the data based on shared V and J gene segments and CDR3 length. The next step involves decomposing the sequences into n-grams of size 3, which are then counted and used to form a vector. To determine the similarity of sequences, the cosine similarity between the vectors is calculated. In order to further enhance the accuracy of the grouping process, the n-gram frequency is normalized using the TF-IDF weighting method. 
+
+The Python3 script implemented for that can be used in Mac OS, Linux and Windows 10. To install and run this software, please ensure that you have Python 3.7.3 or a later version. 
+
+Furthermore, to use this tool, you will need to install several Python libraries that are not included in the standard Python distribution. These libraries include alive_progress, pandas, numpy and scikit-learn. To install these libraries, you can use the pip command in your terminal or command prompt on your operating system:
+
               
               pip3 install alive_progress pandas numpy scikit-learn
               
@@ -16,7 +20,7 @@ You can [click here to download the repository](https://github.com/jao321/YClon/
               git clone https://github.com/jao321/YClon.git
 
 
-The file to be clonotyped should have at least 4 columns with information of a unique sequence identifier, V gene annotation, J gene annotation and CDR3 or other column that maybe compared. Like the example bellow
+Once you have installed the required libraries, you can run YClon by providing an annotated BCR file in the MiAIRR format as input. It is important to note that the input file should have a minimum of four columns: a unique sequence identifier, V gene annotation, J gene annotation, and CDR3 sequence or another comparable column. For further guidance, please refer to the example provided below:
 
 | sequence_id | v_call      | j_call   | cdr3                                        |
 |-------------|-------------|----------|---------------------------------------------|
@@ -24,9 +28,7 @@ The file to be clonotyped should have at least 4 columns with information of a u
 | 26048436_1  | IGHV4-34*01 | IGHJ3*02 | gcgagagtgggaacagcatattgtggtggtgactgctatgatg |
 
 
-
-In a terminal window you can execute Python3 with YClon script. 
-If you would like to use the default settings you should follow the name of the script with the filename. If the file is in the same folder as YClon.py there is no need for the path:
+To execute YClon script, you can open a terminal window and run Python3 with the script file. You can download the [script file](https://raw.githubusercontent.com/jao321/YClon/main/YClon.py) or a [folder](https://github.com/jao321/YClon/archive/refs/heads/main.zip) that contains the script, the README file and an example MiAIRR file (YClon_input_test_airr_only_essential_info.tsv). Alternatively, if you have git installed you can clone the repository with the following command line:
             
               python3 path/YClon.py YClon_input_test_airr_only_essential_info.tsv
 
@@ -121,7 +123,7 @@ This will output the Simpson diversity, Shannon diversity indexes for that parti
     Shannon eveness: 0.00040002478360860543
     ---------------------------------------------
 
-You can also use an accessory R script that is also available in this repository
+You can also use an accessory R script that is also available in this repository. But you will have to have [R](https://cran.r-project.org) installed in your computer.
 To do so, you can use the following code:
 
                 Rscript rarefaction_coverage.R YClon_input_test_airr_only_essential_info_YClon_clonotyped.tsv
