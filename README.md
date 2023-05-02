@@ -65,6 +65,67 @@ Saving only the essential columns
 
 The output file will be written in the same folder as the input file, but with "_YClon_clonotyped" add to its name.
 
+# Output file and what we can do with it
+---
+
+A standard YClon output file will be a .tsv and it will look something like this. Where you have two new columns attached to the columns present in the original input file: 
+
+- clone_id: This is a unique identifier for the clone of which that particular sequence is part
+- clones_seq_count : This is the number of sequences present in that clone
+
+| sequence_id | v_call      | d_call      | j_call   | cdr3                                                                     | clone_id | clone_seq_count |
+|-------------|-------------|-------------|----------|--------------------------------------------------------------------------|----------|-----------------|
+| 6048431_1   | IGHV1-69*19 | IGHD2-2*02  | IGHJ3*02 | gcgagccatattttaggatattgtaatagtaccagctgctatacgccaacccttagggcggcttttgatatc | 2        | 1               |
+| 6048436_1   | IGHV4-34*01 | IGHD2-21*02 | IGHJ3*02 | gcgagagtgggaacagcatattgtggtggtgactgctatgatgatgcttttgatatc                | 11       | 5               |
+| 6048436_2   | IGHV4-34*01 | IGHD2-21*02 | IGHJ3*02 | gcgagagtgggaacagcatattgtggtggtgactgctatgatgatgcttttgatatc                | 11       | 5               |
+| 6048436_3   | IGHV4-34*01 | IGHD2-21*02 | IGHJ3*02 | gcgagagtgggaacagcatattgtggtggtgactgctatgatgatgcttttgatatc                | 11       | 5               |
+| 6048437_1   | IGHV1-2*02  | IGHD6-19*01 | IGHJ4*02 | gcgagagaaagggggagcagtgaatggtacggcgttgactac                               | 20       | 9               |
+| 6048437_2   | IGHV1-2*02  | IGHD6-19*01 | IGHJ4*02 | gcgagagaaagggggagcagtgaatggtacggcgttgactac                               | 20       | 9               |
+| 6048437_3   | IGHV1-2*02  | IGHD6-19*01 | IGHJ4*02 | gcgagagaaagggggagcagtgaatggtacggcgttgactac                               | 20       | 9               |
+| 6048437_4   | IGHV1-2*02  | IGHD6-19*01 | IGHJ4*02 | gcgagagaaagggggagcagtgaatggtacggcgttgactac                               | 20       | 9               |
+| 6048437_5   | IGHV1-2*02  | IGHD6-19*01 | IGHJ4*02 | gcgagagaaagggggagcagtgaatggtacggcgttgactac                               | 20       | 9               |
+| 6048437_6   | IGHV1-2*02  | IGHD6-19*01 | IGHJ4*02 | gcgagagaaagggggagcagtgaatggtacggcgttgactac                               | 20       | 9               |
+| 6048437_7   | IGHV1-2*02  | IGHD6-19*01 | IGHJ4*02 | gcgagagaaagggggagcagtgaatggtacggcgttgactac                               | 20       | 9               |
+| 6048437_8   | IGHV1-2*02  | IGHD6-19*01 | IGHJ4*02 | gcgagagaaagggggagcagtgaatggtacggcgttgactac                               | 20       | 9               |
+| 6048437_9   | IGHV1-2*02  | IGHD6-19*01 | IGHJ4*02 | gcgagagaaagggggagcagtgaatggtacggcgttgactac                               | 20       | 9               |
+| 6048439_1   | IGHV1-8*01  | IGHD3-10*01 | IGHJ5*02 | gcgagagctccccccggacgaggtcggggaataatgcaagccggggtctggttcgacccc             | 78       | 2               |
+| 6048441_1   | IGHV3-23*01 | IGHD4-17*01 | IGHJ6*03 | gcgaaagatcacggttccaacccctactactactactacatggacgtc                         | 84       | 8               |
+
+
+As an example showed below we can see the the first sequence is on clone named "2" and it is a clone with only one sequence.
+Meanwhile the second sequence is part of the clone "11" and this clone has 5 sequences
+
+| sequence_id | v_call      | d_call      | j_call   | cdr3                                                                     | clone_id | clone_seq_count |
+|-------------|-------------|-------------|----------|--------------------------------------------------------------------------|----------|-----------------|
+| 6048431_1   | IGHV1-69*19 | IGHD2-2*02  | IGHJ3*02 | gcgagccatattttaggatattgtaatagtaccagctgctatacgccaacccttagggcggcttttgatatc | 2        | 1               |
+| 6048436_1   | IGHV4-34*01 | IGHD2-21*02 | IGHJ3*02 | gcgagagtgggaacagcatattgtggtggtgactgctatgatgatgcttttgatatc                | 11       | 5               |
+
+
+What kind of information you can gather from it?
+
+We can attest the clonal diversity via the command line:
+                python3 YClon.py diversity YClon_input_test_airr_only_essential_info_YClon_clonotyped.tsv
+                
+This will output the Simpson diversity, Shannon diversity indexes for that particular repertoire and the Shannon evenesss of it.
+                ---------------------------------------------
+                DIVERSITY REPORT
+
+
+                Simpson diversity:0.9998301997772924
+
+
+                Shannon diverity: 9.600194781822921
+
+
+                Shannon eveness: 0.00040002478360860543
+                ---------------------------------------------
+
+You can also use an accessory R script that is also available in this repository
+To do so, you can use the following code:
+
+                Rscript rarefaction_coverage.R YClon_input_test_airr_only_essential_info_YClon_clonotyped.tsv
+
+
 # Plug and play
 ---
 
