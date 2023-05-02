@@ -107,24 +107,25 @@ We can attest the clonal diversity via the command line:
                 python3 YClon.py diversity YClon_input_test_airr_only_essential_info_YClon_clonotyped.tsv
                 
 This will output the Simpson diversity, Shannon diversity indexes for that particular repertoire and the Shannon evenesss of it.
-                ---------------------------------------------
-                DIVERSITY REPORT
+
+    ---------------------------------------------
+    DIVERSITY REPORT
 
 
-                Simpson diversity:0.9998301997772924
+    Simpson diversity:0.9998301997772924
 
 
-                Shannon diverity: 9.600194781822921
+    Shannon diverity: 9.600194781822921
 
 
-                Shannon eveness: 0.00040002478360860543
-                ---------------------------------------------
+    Shannon eveness: 0.00040002478360860543
+    ---------------------------------------------
 
 You can also use an accessory R script that is also available in this repository
 To do so, you can use the following code:
 
                 Rscript rarefaction_coverage.R YClon_input_test_airr_only_essential_info_YClon_clonotyped.tsv
-
+![alt text](https://raw.githubusercontent.com/jao321/YClon/main/YClon_input_test_airr_only_essential_info_YClon_clonotyped_RAREFACTION.png)
 
 # Plug and play
 ---
