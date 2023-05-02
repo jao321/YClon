@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 
-version = "1.3.7 - Apr 13th 2023"
+version = "1.4 - May 2nd 2023"
 try:
 	if sys.argv.index("--version") != -1 :
 		print("Yclon version "+version)
@@ -11,6 +11,7 @@ except:
 
 import os
 import time
+start_time = time.time()
 import platform
 from alive_progress import alive_bar
 import pandas as pd
@@ -21,20 +22,128 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.cluster import AgglomerativeClustering
 
-# import psutil
-# print(psutil.Process().memory_info().rss/(1024 * 1024))
-
-
-
-#debug writing output
-#add clone_seq_count to the clonotyped file
-#add possibility for changing kmer size, outfile name, out dir name
 
 def directory_path(file_path):
 	OS = platform.system()
 	temp =	file_path.split(os.sep)
 	file_path = file_path.replace(temp[len(temp)-1],"")
 	return(file_path)
+
+def simpson_di(data):
+	#from https://gist.github.com/martinjc/f227b447791df8c90568
+
+
+    """ Given a hash { 'species': count } , returns the Simpson Diversity Index
+    
+    >>> simpson_di({'a': 10, 'b': 20, 'c': 30,})
+    0.3888888888888889
+    """
+
+    def p(n, N):
+        """ Relative abundance """
+        if n == 0:
+            return 0
+        else:
+            return float(n)/N
+
+    N = sum(data.values())
+    
+    return sum(p(n, N)**2 for n in data.values() if n != 0)
+
+
+def shannon_di(data):
+    #from https://gist.github.com/audy/783125
+
+    """ Given a hash { 'species': count } , returns the SDI
+    
+    >>> sdi({'a': 10, 'b': 20, 'c': 30,})
+    1.0114042647073518"""
+    
+    from math import log as ln
+    
+    def p(n, N):
+        """ Relative abundance """
+        if n == 0:
+            return 0
+        else:
+            return (float(n)/N) * ln(float(n)/N)
+            
+    N = sum(data.values())
+    
+    return -sum(p(n, N) for n in data.values() if n != 0)
+
+separator = "\t"
+
+if("rarefy" in sys.argv):
+	from rare import rarefy
+
+	clones = {}
+	filename = sys.argv[2]
+	print(filename)
+	
+	try:
+		repertoire = pd.read_csv(filename,usecols = ['clone_id','clone_seq_count'], sep=separator)
+	except:
+		print("Please provide the path to a file with clone_id and clone_seq_count columns")
+		exit()
+	repertoire = repertoire.drop_duplicates(subset=["clone_id"])
+
+	# print(repertoire["clone_id"].to_numpy())
+	# exit()
+	# print(repertoire.T[repertoire.T[0]=="clone_seq_count"].to_numpy)
+	repertoire = repertoire.T
+	a = []
+	for x in range(len(repertoire.columns)):
+		a.append("col"+str(x))
+	
+	repertoire.columns = a
+	import random
+	# path = 'https://github.com/Auerilas/ecopy-data/raw/master/data/BCI.csv'
+	# downloadPath = path.format()
+	# loaded = pd.read_csv(downloadPath)
+	# print(sum(repertoire.loc["clone_seq_count"]))
+	repertoire.loc["clone_seq_count"] = [random.randint(0,2) for x in range(1,24000)]
+	repertoire.loc["clone_id"] = [random.randint(0,2) for x in range(1,24000)]
+	# print(repertoire)
+	# print(sum(loaded.iloc[1]))
+	print(rarefy(repertoire.to_numpy(),'rarefy'))
+	exit()
+
+if("diversity" in sys.argv):
+	clones = {}
+	filename = sys.argv[2]
+	print(filename)
+	try:
+		repertoire = pd.read_csv(filename,usecols = ['clone_id','clone_seq_count'], sep=separator)
+	except:
+		print("Please provide the path to a file with clone_id and clone_seq_count columns")
+		exit()
+	repertoire = repertoire.drop_duplicates(subset=["clone_id"])
+	for x in repertoire["clone_id"]:
+		clones[x]=repertoire[repertoire["clone_id"]==x]["clone_seq_count"].values[0]
+		# exit()
+	# clones = repertoire.set_index('clone_id')
+	# clones = repertoire.to_dict('records')
+	# print(clones)
+	print("---------------------------------------------")
+	print("DIVERSITY REPORT")
+	print("\n")
+	print("Simpson diversity:"+str(1-simpson_di(clones)))
+	print("\n")
+	print("Shannon diverity: "+str(shannon_di(clones)))
+	print("\n")
+	print("Shannon eveness: "+str(shannon_di(clones)/len(clones)))
+	print("---------------------------------------------")
+	print("\n")
+	exit()
+
+
+
+
+
+
+
+
 
 def most_common(lst):
     return max(set(lst), key=lst.count)
@@ -57,7 +166,6 @@ sequence_column = "cdr3"
 vcolumn = "v_call"
 jcolumn = "j_call"
 seqID = "sequence_id"
-separator = "\t"
 memory_usage = "default"
 path = directory_path(filename)
 filename_temp = filename.split(".")
@@ -108,9 +216,6 @@ for x in range(1,len(sys.argv)):
 def build_kmers_tf_idf(sequence, ksize=ksize): 
 		ngrams = zip(*[sequence[i:] for i in range(ksize)])
 		return [''.join(ngram) for ngram in ngrams]
-
-
-start_time = time.time()
 
 
 def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separator, memory_usage, short_output):
