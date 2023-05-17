@@ -6,7 +6,7 @@ The first step of YClon involves subsetting the data based on shared V and J gen
 
 The Python3 script implemented for that can be used in Mac OS, Linux and Windows 10. To install and run this software, please ensure that you have Python 3.7.3 or a later version. 
 
-Furthermore, to use this tool, you will need to install several Python libraries that are not included in the standard Python distribution. These libraries include alive_progress, pandas, numpy and scikit-learn. To install these libraries, you can use the pip command in your terminal or command prompt on your operating system:
+Furthermore, to use this tool, you will need to install several Python libraries that are not included in the standard Python distribution. These libraries include alive_progress, pandas, numpy and scikit-learn(1.4 or higher). To install these libraries, you can use the pip command in your terminal or command prompt on your operating system:
 
               
               pip3 install alive_progress pandas numpy scikit-learn
