@@ -125,10 +125,10 @@ This will output the Simpson diversity, Shannon diversity indexes for that parti
     Simpson diversity:0.9998301997772924
 
 
-    Shannon diverity: 9.600194781822921
+    Shannon diversity: 9.600194781822921
 
 
-    Shannon eveness: 0.00040002478360860543
+    Shannon evenness: 0.00040002478360860543
     ---------------------------------------------
 
 
