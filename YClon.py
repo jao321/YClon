@@ -327,7 +327,7 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 					tf_idf_matrix = vectorizer.fit_transform(junc_seq)	
 					dist = 1 - cosine_similarity(tf_idf_matrix)
 					if method ==	"AHAM":
-						clusterer = AgglomerativeClustering(distance_threshold = thr, n_clusters= None, affinity="precomputed",linkage='average')
+						clusterer = AgglomerativeClustering(distance_threshold = thr, n_clusters= None, metric="precomputed",linkage='average')
 					elif method == "HDBSCAN":
 						clusterer = hdbscan.HDBSCAN(min_cluster_size=3, cluster_selection_epsilon= thr, metric='precomputed')
 					cluster_pre_clone = clusterer.fit(dist)
@@ -381,7 +381,7 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 					tf_idf_matrix = vectorizer.fit_transform(junc_seq)	
 					dist = 1 - cosine_similarity(tf_idf_matrix)
 					if method ==	"AHAM":
-						clusterer = AgglomerativeClustering(distance_threshold = thr, n_clusters= None, affinity="precomputed",linkage='average')
+						clusterer = AgglomerativeClustering(distance_threshold = thr, n_clusters= None, metric="precomputed",linkage='average')
 					elif method == "HDBSCAN":
 						clusterer = hdbscan.HDBSCAN(min_cluster_size=3, cluster_selection_epsilon= thr, metric='precomputed')
 					cluster_teste = clusterer.fit(dist)
