@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 import sys
 
-version = "1.4 - May 2nd 2023"
+version = "2.0 - Jun 20th 2023"
 try:
 	if sys.argv.index("--version") != -1 :
-		print("Yclon version "+version)
+		print("YClon version "+version)
 		exit()
 except:
 	pass
@@ -21,6 +21,11 @@ from collections import defaultdict
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.cluster import AgglomerativeClustering
+import itertools
+from joblib import Parallel, delayed, effective_n_jobs
+from sklearn.metrics.pairwise import pairwise_distances
+from scipy.cluster.hierarchy import single, fcluster
+
 
 
 def directory_path(file_path):
@@ -74,41 +79,6 @@ def shannon_di(data):
 
 separator = "\t"
 
-if("rarefy" in sys.argv):
-	from rare import rarefy
-
-	clones = {}
-	filename = sys.argv[2]
-	print(filename)
-	
-	try:
-		repertoire = pd.read_csv(filename,usecols = ['clone_id','clone_seq_count'], sep=separator)
-	except:
-		print("Please provide the path to a file with clone_id and clone_seq_count columns")
-		exit()
-	repertoire = repertoire.drop_duplicates(subset=["clone_id"])
-
-	# print(repertoire["clone_id"].to_numpy())
-	# exit()
-	# print(repertoire.T[repertoire.T[0]=="clone_seq_count"].to_numpy)
-	repertoire = repertoire.T
-	a = []
-	for x in range(len(repertoire.columns)):
-		a.append("col"+str(x))
-	
-	repertoire.columns = a
-	import random
-	# path = 'https://github.com/Auerilas/ecopy-data/raw/master/data/BCI.csv'
-	# downloadPath = path.format()
-	# loaded = pd.read_csv(downloadPath)
-	# print(sum(repertoire.loc["clone_seq_count"]))
-	repertoire.loc["clone_seq_count"] = [random.randint(0,2) for x in range(1,24000)]
-	repertoire.loc["clone_id"] = [random.randint(0,2) for x in range(1,24000)]
-	# print(repertoire)
-	# print(sum(loaded.iloc[1]))
-	print(rarefy(repertoire.to_numpy(),'rarefy'))
-	exit()
-
 if("diversity" in sys.argv):
 	clones = {}
 	filename = sys.argv[2]
@@ -138,38 +108,36 @@ if("diversity" in sys.argv):
 	exit()
 
 
-
-
-
-
-
-
-
 def most_common(lst):
     return max(set(lst), key=lst.count)
 
 filename = ""
-
+filename_temp = ""
+out_filename = ""
 if (any(".tsv" in i for i in sys.argv) == True) and (any("--input" in i for i in sys.argv) == False):
 	filename =	sys.argv[1]
-elif any("--input" in i for i in sys.argv) == False:
+	filename_temp = filename.split(".")
+	out_filename = filename_temp[0]+"_YClon_clonotyped."+filename_temp[1]
+elif any("--input" in i for i in sys.argv) == False and (any("--folder" in i for i in sys.argv) == False):
 	print("Please provide a file path")
 	exit()
+elif any("--input" in i for i in sys.argv) == False and (any("--folder" in i for i in sys.argv) == True):
+    filename = sys.argv[sys.argv.index("--folder")+1]
 else:
 	filename = sys.argv[sys.argv.index("--input")+1]
 
 print(filename)
 
+clonotyped = False
 method = "AHAM"
 thr = 0.09
+metric = "hamming"
 sequence_column = "cdr3"
 vcolumn = "v_call"
 jcolumn = "j_call"
 seqID = "sequence_id"
 memory_usage = "default"
 path = directory_path(filename)
-filename_temp = filename.split(".")
-out_filename = filename_temp[0]+"_YClon_clonotyped."+filename_temp[1]
 ksize = 3
 short_output = False
 every_in_the_folder = False
@@ -180,6 +148,8 @@ for x in range(1,len(sys.argv)):
 		filename = sys.argv[x+1]
 	elif sys.argv[x].find("--method") != -1: 
 		method = sys.argv[x+1]
+	elif sys.argv[x].find("--metric") != -1: 
+		metric = sys.argv[x+1]
 	elif sys.argv[x].find("--thr") != -1:
 		thr = float(sys.argv[x+1])
 	elif sys.argv[x].find("--sequence") != -1:
@@ -194,8 +164,6 @@ for x in range(1,len(sys.argv)):
 		separator = sys.argv[x+1]
 	elif sys.argv[x].find("--kmer_length") != -1:
 		ksize = int(sys.argv[x+1])
-	elif sys.argv[x].find("--low_memory") != -1:
-		memory_usage = "low"
 	elif sys.argv[x].find("--dir_out") != -1:
 		path = sys.argv[x+1]
 		out_filename = os.path.join(path,os.path.basename(out_filename))
@@ -205,9 +173,6 @@ for x in range(1,len(sys.argv)):
 	elif sys.argv[x].find("--short_output") != -1:
 		short_output = True
 		out_small_name = out_filename.replace("_YClon_clonotyped.","_YClon_clonotyped_only_essential_columns.")
-		# os.path.join(path,sys.argv[x+1]+"_YClon_clonotyped_only_essential_columns."+filename_temp[1])
-		# if sys.argv[x+1] != "--":
-		# 	out_small_name = sys.argv[x+1]
 	elif sys.argv[x].find("--folder") != -1:
 		every_in_the_folder = True
 		filename = sys.argv[x+1]
@@ -218,7 +183,7 @@ def build_kmers_tf_idf(sequence, ksize=ksize):
 		return [''.join(ngram) for ngram in ngrams]
 
 
-def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separator, memory_usage, short_output):
+def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separator, short_output, clonotyped):
 	f = open(filename, 'r')
 	x = f.readline().strip()
 	head = x.split(separator)
@@ -268,149 +233,88 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 		# print(data)
 		# exit()
 		if len(data)!= number_of_columns:
+			fail+=1
 			continue
 		try:
 			if len(data[junc_indx]) < 4:
+				fail += 1
 				continue
-			cdr3len = str(len(data[junc_indx]))
+			cdr3len = str(len(data[junc_indx])).strip()
 			vGene = data[vGene_indx].split(',')[0].split('*') #include all v gene alleles
-			jGene = data[jGene_indx].split(',')[0].split('*') #include all v gene alleles
-			# print(vGene[0]+" "+jGene[0]+"\n")
-			if (jGene != "") and (vGene != "") and (cdr3len != 0):
+			jGene = data[jGene_indx].split(',')[0].split('*') #include all j gene alleles
+			if jGene != "" and vGene != "" and cdr3len != 0:
 				key = vGene[0]+","+jGene[0]+","+cdr3len
+			else:
+				fail +=1
+				continue
 			clonotypes.setdefault(key, [])
-			proclonotype = [data[seq_id_indx],data[junc_indx]]
+			proclonotype = [data[seq_id_indx].strip(),data[junc_indx].strip().lower()]
 			clonotypes[key].append(proclonotype)
 		except:
 			fail +=1
-			
-
-
+			continue
 
 		
 	f.close()
 	temp_filename = path+"YClon_temp.txt"
-	size = len(clonotypes)
 	temp = open(temp_filename, 'w')
 	count = 0
 	total_clust = 0
 	unico_pq_VJLen = 0
 	maior = 0
 	a = 0
-	if memory_usage == "low":
-		with alive_bar(len(clonotypes), title="Clonotyping") as bar: 
-			for key in clonotypes: #each key is the combination of V gene, J gene and the length of cdr3, the values are the sequence ID and cdr3 sequence
-				bar()
-				# if bar.current() == 3336:
-				#	 print(clonotypes[key])
-				if len(clonotypes[key]) > 1:
-					pre_clone = pd.DataFrame(clonotypes[key])
-					pre_clone.columns = colunas
-					unique_cdr3 = pre_clone.drop_duplicates(sequence_column)
-				else:
-					unique_cdr3 = clonotypes[key]
-				if len(unique_cdr3) > 1:
-					# pre_clone = pd.DataFrame(clonotypes[key])
-					# pre_clone.columns = colunas
-					# unique_cdr3 = pre_clone.drop_duplicates(sequence_column)
+	with alive_bar(len(clonotypes), title="Clonotyping") as bar: 
+		for key in clonotypes: #each key is the combination of V gene, J gene and the length of cdr3, the values are the sequence ID and cdr3 sequence
+			bar()
+			# if bar.current() == 3336:
+			#	 print(clonotypes[key])
+			if len(clonotypes[key]) > 1:
+				pre_clone = pd.DataFrame(clonotypes[key])
+				pre_clone.columns = colunas
+				unique_cdr3 = pre_clone.drop_duplicates(sequence_column)
+			else:
+				unique_cdr3 = clonotypes[key]
+			if len(unique_cdr3) > 1:
+				seq_id = pre_clone[seqID]
 
-
-					# junc_seq = pre_clone[sequence_column]
-					seq_id = pre_clone[seqID]
-
-					junc_seq = unique_cdr3[sequence_column]
-					seq_unique = unique_cdr3[seqID]
-
-
-					# vectorizer = TfidfVectorizer(min_df=1, analyzer=build_kmers_tf_idf)
+				junc_seq = unique_cdr3[sequence_column]
+				if metric ==	"kmer":
+					clusterer = AgglomerativeClustering(distance_threshold = thr, n_clusters= None, metric="precomputed",linkage='average')
 					vectorizer = CountVectorizer(min_df=1, analyzer=build_kmers_tf_idf)
 					tf_idf_matrix = vectorizer.fit_transform(junc_seq)	
 					dist = 1 - cosine_similarity(tf_idf_matrix)
-					if method ==	"AHAM":
-						clusterer = AgglomerativeClustering(distance_threshold = thr, n_clusters= None, metric="precomputed",linkage='average')
-					elif method == "HDBSCAN":
-						clusterer = hdbscan.HDBSCAN(min_cluster_size=3, cluster_selection_epsilon= thr, metric='precomputed')
-					cluster_pre_clone = clusterer.fit(dist)
-					clone = cluster_pre_clone.labels_
-					# if cluster_pre_clone.labels_.max() != -1:
-					maior = count + cluster_pre_clone.labels_.max() + 1
-					# print("clone_size: "+str(len(clone)))
-					# print("junc_seq: "+str(len(junc_seq)))
-					# print(junc_seq.index)
-					junc_seq = junc_seq.reset_index(drop=True) 
-					# print(junc_seq[0])
-					for i in range(0, len(clone)):
-						if clone[i] != -1:
-							clone_id = count + int(clone[i]) +1
-						else:
-							clone_id = maior + 1
-							maior += 1
-							total_clust += 1
-						
-						# print(junc_seq[i])
+				elif metric == "hamming":
+					input = [list(map(int,list(x.lower().replace("a","0").replace("c","1").replace("t","2").replace("g","3").replace("n","4")))) for x in junc_seq]
+					clusterer = AgglomerativeClustering(distance_threshold = 0.09, n_clusters= None,metric="precomputed",linkage='average')
+					dist = pairwise_distances(input,metric="hamming",n_jobs=-1)
+					
+				cluster_pre_clone = clusterer.fit(dist)
+				clone = cluster_pre_clone.labels_
+				# if cluster_pre_clone.labels_.max() != -1:
+				maior = count + cluster_pre_clone.labels_.max() + 1
+				junc_seq = junc_seq.reset_index(drop=True) 
+				for i in range(0, len(clone)):
+					if clone[i] != -1:
+						clone_id = count + int(clone[i]) +1
+					else:
+						clone_id = maior + 1
+						maior += 1
+						total_clust += 1
 
-						all_again = pre_clone.loc[pre_clone[sequence_column] == junc_seq[i]][seqID]
-						# print(all_again)
-						for k in all_again:
-							temp.write(k+","+str(clone_id)+"\n")	
-					count = maior
-					total_clust += cluster_pre_clone.labels_.max() + 1	
-				else:
-					unico_pq_VJLen +=1
-					count += 1
-					total_clust += 1
-					pre_clone = pd.DataFrame(clonotypes[key])
-					pre_clone.columns = colunas
-					seq_id = pre_clone[seqID]
-					for i in range(0, len(clonotypes[key])):
-						temp.write(str(seq_id[i])+","+str(count)+"\n")
-	else:
-		with alive_bar(len(clonotypes), title="Clonotyping") as bar: 
-			for key in clonotypes: #each key is the combination of V gene, J gene and the length of cdr3, the values are the sequence ID and cdr3 sequence
-				bar()
-				if len(clonotypes[key]) > 1:
-					teste = pd.DataFrame(clonotypes[key])
-					teste.columns = colunas
-
-					junc_seq = teste[sequence_column]
-					seq_id = teste[seqID]
-
-
-					# vectorizer = TfidfVectorizer(min_df=1, analyzer=build_kmers_tf_idf)
-					vectorizer = CountVectorizer(min_df=1, analyzer=build_kmers_tf_idf)
-					tf_idf_matrix = vectorizer.fit_transform(junc_seq)	
-					dist = 1 - cosine_similarity(tf_idf_matrix)
-					if method ==	"AHAM":
-						clusterer = AgglomerativeClustering(distance_threshold = thr, n_clusters= None, metric="precomputed",linkage='average')
-					elif method == "HDBSCAN":
-						clusterer = hdbscan.HDBSCAN(min_cluster_size=3, cluster_selection_epsilon= thr, metric='precomputed')
-					cluster_teste = clusterer.fit(dist)
-					clone = cluster_teste.labels_
-
-					# if cluster_teste.labels_.max() != -1:
-					maior = count + cluster_teste.labels_.max() + 1
-
-					for i in range(0, len(clonotypes[key])):
-						# print("vai escrever")
-						if clone[i] != -1:
-							clone_id = count + int(clone[i]) +1
-						else:
-							clone_id = maior + 1
-							maior += 1
-							total_clust += 1
-						
-						temp.write(str(seq_id[i])+","+str(clone_id)+"\n") 
-					count = maior
-					total_clust += cluster_teste.labels_.max() + 1	
-				else:
-					unico_pq_VJLen +=1
-					count += 1
-					total_clust += 1
-					teste = pd.DataFrame(clonotypes[key])
-					teste.columns = colunas
-					seq_id = teste[seqID]
-					for i in range(0, len(clonotypes[key])):
-						temp.write(str(seq_id[i])+","+str(count)+"\n")
+					all_again = pre_clone.loc[pre_clone[sequence_column] == junc_seq[i]][seqID]
+					for k in all_again:
+						temp.write(k+","+str(clone_id)+"\n")	
+				count = maior
+				total_clust += cluster_pre_clone.labels_.max() + 1	
+			else:
+				unico_pq_VJLen +=1
+				count += 1
+				total_clust += 1
+				pre_clone = pd.DataFrame(clonotypes[key])
+				pre_clone.columns = colunas
+				seq_id = pre_clone[seqID]
+				for i in range(0, len(clonotypes[key])):
+					temp.write(str(seq_id[i])+","+str(count)+"\n")
 
 	pre_clone = []
 
@@ -444,7 +348,6 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 			bar()
 			if x.find(seqID) == -1:
 				data = x.split(separator)
-
 				if data[seq_id_indx] in clonotipo:
 					for i in range(0, len(data)):
 						out.write(data[i].strip()+separator)
@@ -460,7 +363,11 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 			else:
 				data = x.split(separator)
 				seq_id_indx = data.index(seqID)
-				out.write(x.strip()+separator+"clone_id\n")
+				if x.find("clone_id") == -1:
+				    out.write(x.strip()+separator+"clone_id\n")
+				else:
+					out.write(x.strip()+separator+"clone_id_YClon\n")
+					clonotyped = True
 
 
 	if short_output == True:
@@ -484,51 +391,54 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 				#out_small.write(x.strip()+separator+"clone_idn")
 
 
-	os.remove(temp_filename)
 	out.close()
+	os.remove(temp_filename)
 	temp_filename = path+"YClon_temp.txt"
 	temp = open(temp_filename, 'w')
 	out = open(out_filename, 'r')
 
-
-	out_report = open(out_filename.split("_")[0]+"_YClon_clone_report.tsv","w")
-	out_report.write("sequence_id\tseq_count\tmost_common_cdr3\tclone_id\n")
-	# print(most_common_seq_id)
-	# print(maior)
 
 	#write the seq_count of each clone in row
 
 	for x in out:
 		if x.find(seqID) != -1:
 			temp.write(x.strip()+separator+"clone_seq_count\n")
-			i = x.strip().split(separator).index("clone_id")
+			if clonotyped == True:
+				i = x.strip().split(separator).index("clone_id_YClon")
+			else:
+				i = x.strip().split(separator).index("clone_id")
 		else:
+			# print(x.strip().split(separator)[i])
 			temp.write(x.strip()+separator+str(len(maior[x.strip().split(separator)[i]]))+"\n")
 	temp.close()
 	out.close()
 	os.rename(temp_filename,out_filename)
-	for i in most_common_cdr3:
-	  # print(i)
-	  cdr3 = most_common(most_common_cdr3[i])
-	  # print(most_common_seq_id[i])
-	  out_report.write(most_common_seq_id[i][most_common_cdr3[i].index(cdr3)]+"\t"+str(len(maior[i]))+"\t"+cdr3+"\t"+i+"\n")
+	# for i in most_common_cdr3:
+	#   # print(i)
+	#   cdr3 = most_common(most_common_cdr3[i])
+	#   # print(most_common_seq_id[i])
+	#   out_report.write(most_common_seq_id[i][most_common_cdr3[i].index(cdr3)]+"\t"+str(len(maior[i]))+"\t"+cdr3+"\t"+i+"\n")
 
 	current_time = time.time()
 	elapsed_time = current_time - start_time
 
 	if short_output == True:
 		os.remove(out_filename)
-	print("The work was completed in: " + "%.3f" % int(elapsed_time))
+	print("The work was completed in: " + "%.3f" % int(elapsed_time) + " seconds")
+	print(str(fail)+ " sequences could not be assigned to any clones")
 
 
 path = directory_path(filename)
 
 if every_in_the_folder == False:
-	clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separator, memory_usage, short_output)
+	clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separator, short_output,clonotyped)
 else:
 	files = os.listdir(path)
 	for x in files:
-		clonotyping(path+"/"+x, thr, sequence_column, vcolumn, jcolumn, seqID, separator, memory_usage, short_output)
+		if x.find(".tsv") != -1:
+			filename_temp = x.split(".")
+			out_filename = filename_temp[0]+"_YClon_clonotyped."+filename_temp[1]
+			clonotyping(path+"/"+x, thr, sequence_column, vcolumn, jcolumn, seqID, separator, short_output,clonotyped)
 
 
 
