@@ -115,9 +115,7 @@ filename = ""
 filename_temp = ""
 out_filename = ""
 if (any(".tsv" in i for i in sys.argv) == True) and (any("--input" in i for i in sys.argv) == False):
-	filename =	sys.argv[1]
-	filename_temp = filename.split(".")
-	out_filename = filename_temp[0]+"_YClon_clonotyped."+filename_temp[1]
+	filename = sys.argv[1]
 elif any("--input" in i for i in sys.argv) == False and (any("--folder" in i for i in sys.argv) == False):
 	print("Please provide a file path")
 	exit()
@@ -128,6 +126,8 @@ else:
 
 print(filename)
 
+filename_temp = filename.split(".")
+out_filename = filename_temp[0]+"_YClon_clonotyped."+filename_temp[1]
 clonotyped = False
 method = "AHAM"
 thr = 0.09
