@@ -392,6 +392,7 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 
 
 	out.close()
+	in_temp.close()
 	os.remove(temp_filename)
 	temp_filename = path+"YClon_temp.txt"
 	temp = open(temp_filename, 'w')
