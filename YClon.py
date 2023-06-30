@@ -77,6 +77,89 @@ def shannon_di(data):
     
     return -sum(p(n, N) for n in data.values() if n != 0)
 
+def most_common(lst):
+    return max(set(lst), key=lst.count)
+
+
+def get_columns_index(head):
+	try:
+		seq_id_indx = head.index(seqID)
+	except:
+		print("\nWARNING\nThere is no column named "+seqID+"\n")
+		exit()
+
+	try:
+		junc_indx = head.index(sequence_column)
+	except:
+		print("\nWARNING\nThere is no column named "+sequence_column+"\n")
+		exit()
+
+	try:
+		vGene_indx = head.index(vcolumn)
+	except:
+		print("\nWARNING\nThere is no column named "+vcolumn+"\n")
+		exit()
+
+	try:
+		jGene_indx = head.index(jcolumn)
+	except:
+		print("\nWARNING\nThere is no column named "+jcolumn+"\n")
+		exit()
+
+	return seq_id_indx, junc_indx, vGene_indx, jGene_indx
+
+def parse_AIRR(filename, separator = "\t"):
+	f = open(filename, 'r')
+	x = f.readline().strip()
+	head = x.split(separator)
+
+	# for i in range(len(head)):
+	# 	head[i] = head[i]
+
+	number_of_columns = len(head)
+
+	seq_id_indx, junc_indx, vGene_indx, jGene_indx = get_columns_index(head)
+	
+	colunas = [head[seq_id_indx],head[junc_indx]]
+
+	file_size = 0
+	i=0
+	fail = 0
+	clonotypes = {}
+	print("Processing file")
+	for x in f:
+		file_size +=1
+		# x = x.strip()
+		data = list(x.split(separator))
+		# print(len(data))
+		# print(data)
+		# exit()
+		if len(data)!= number_of_columns:
+			fail+=1
+			continue
+		try:
+			if len(data[junc_indx]) < 4:
+				fail += 1
+				continue
+			cdr3len = str(len(data[junc_indx])).strip()
+			vGene = data[vGene_indx].split(',')[0].split('*') #include all v gene alleles
+			jGene = data[jGene_indx].split(',')[0].split('*') #include all j gene alleles
+			if jGene != "" and vGene != "" and cdr3len != 0:
+				key = vGene[0]+","+jGene[0]+","+cdr3len
+			else:
+				fail +=1
+				continue
+			clonotypes.setdefault(key, [])
+			proclonotype = [data[seq_id_indx].strip(),data[junc_indx].strip().lower()]
+			clonotypes[key].append(proclonotype)
+		except:
+			fail +=1
+			continue
+		
+	f.close()
+	return clonotypes, colunas, seq_id_indx, junc_indx, vGene_indx, jGene_indx, file_size, fail
+
+
 separator = "\t"
 
 if("diversity" in sys.argv):
@@ -108,12 +191,12 @@ if("diversity" in sys.argv):
 	exit()
 
 
-def most_common(lst):
-    return max(set(lst), key=lst.count)
+
 
 filename = ""
 filename_temp = ""
 out_filename = ""
+out_report_name = ""
 if (any(".tsv" in i for i in sys.argv) == True) and (any("--input" in i for i in sys.argv) == False):
 	filename = sys.argv[1]
 elif any("--input" in i for i in sys.argv) == False and (any("--folder" in i for i in sys.argv) == False):
@@ -128,6 +211,7 @@ print(filename)
 
 filename_temp = filename.split(".")
 out_filename = filename_temp[0]+"_YClon_clonotyped."+filename_temp[1]
+
 clonotyped = False
 method = "AHAM"
 thr = 0.09
@@ -177,6 +261,7 @@ for x in range(1,len(sys.argv)):
 		every_in_the_folder = True
 		filename = sys.argv[x+1]
 
+out_report_name =  filename_temp[0]+"_YClon_clonotyped_report."+filename_temp[1]
 
 def build_kmers_tf_idf(sequence, ksize=ksize): 
 		ngrams = zip(*[sequence[i:] for i in range(ksize)])
@@ -184,78 +269,7 @@ def build_kmers_tf_idf(sequence, ksize=ksize):
 
 
 def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separator, short_output, clonotyped):
-	f = open(filename, 'r')
-	x = f.readline().strip()
-	head = x.split(separator)
-
-	# for i in range(len(head)):
-	# 	head[i] = head[i]
-
-	number_of_columns = len(head)
-
-	try:
-		seq_id_indx = head.index(seqID)
-	except:
-		print("\nWARNING\nThere is no column named "+seqID+"\n")
-		exit()
-
-	try:
-		junc_indx = head.index(sequence_column)
-	except:
-		print("\nWARNING\nThere is no column named "+sequence_column+"\n")
-		exit()
-
-	try:
-		vGene_indx = head.index(vcolumn)
-	except:
-		print("\nWARNING\nThere is no column named "+vcolumn+"\n")
-		exit()
-
-	try:
-		jGene_indx = head.index(jcolumn)
-	except:
-		print("\nWARNING\nThere is no column named "+jcolumn+"\n")
-		exit()
-
-	colunas = [head[seq_id_indx],head[junc_indx]]
-
-
-	i=0
-	fail = 0
-	clonotypes = {}
-	file_size = 0
-	print("Processing file")
-	for x in f:
-		file_size +=1
-		# x = x.strip()
-		data = list(x.split(separator))
-		# print(len(data))
-		# print(data)
-		# exit()
-		if len(data)!= number_of_columns:
-			fail+=1
-			continue
-		try:
-			if len(data[junc_indx]) < 4:
-				fail += 1
-				continue
-			cdr3len = str(len(data[junc_indx])).strip()
-			vGene = data[vGene_indx].split(',')[0].split('*') #include all v gene alleles
-			jGene = data[jGene_indx].split(',')[0].split('*') #include all j gene alleles
-			if jGene != "" and vGene != "" and cdr3len != 0:
-				key = vGene[0]+","+jGene[0]+","+cdr3len
-			else:
-				fail +=1
-				continue
-			clonotypes.setdefault(key, [])
-			proclonotype = [data[seq_id_indx].strip(),data[junc_indx].strip().lower()]
-			clonotypes[key].append(proclonotype)
-		except:
-			fail +=1
-			continue
-
-		
-	f.close()
+	clonotypes, colunas, seq_id_indx, junc_indx, vGene_indx, jGene_indx, file_size, fail = parse_AIRR(filename=filename,separator = separator)
 	temp_filename = path+"YClon_temp.txt"
 	temp = open(temp_filename, 'w')
 	count = 0
@@ -325,6 +339,7 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 	in_airr = open(filename, 'r')
 	filename_temp = filename.split(".")
 	out = open(out_filename, 'w+')
+	out_report = open(out_report_name, 'w+')
 	clonotipo = {}
 	maior ={}
 	maximo = 0
@@ -342,7 +357,6 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 	most_common_cdr3 = {}
 	most_common_seq_id = {}
 	seq_list = []
- 
 	with alive_bar(file_size+1, title="Writing output file") as bar:
 		for x in in_airr:
 			bar()
@@ -397,7 +411,7 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 	temp_filename = path+"YClon_temp.txt"
 	temp = open(temp_filename, 'w')
 	out = open(out_filename, 'r')
-
+	out_report
 
 	#write the seq_count of each clone in row
 
@@ -414,11 +428,11 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 	temp.close()
 	out.close()
 	os.rename(temp_filename,out_filename)
-	# for i in most_common_cdr3:
-	#   # print(i)
-	#   cdr3 = most_common(most_common_cdr3[i])
-	#   # print(most_common_seq_id[i])
-	#   out_report.write(most_common_seq_id[i][most_common_cdr3[i].index(cdr3)]+"\t"+str(len(maior[i]))+"\t"+cdr3+"\t"+i+"\n")
+	for i in most_common_cdr3:
+	  # print(i)
+	  cdr3 = most_common(most_common_cdr3[i])
+	  # print(most_common_seq_id[i])
+	  out_report.write(most_common_seq_id[i][most_common_cdr3[i].index(cdr3)]+"\t"+str(len(maior[i]))+"\t"+cdr3+"\t"+i+"\n")
 
 	current_time = time.time()
 	elapsed_time = current_time - start_time
