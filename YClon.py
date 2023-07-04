@@ -409,7 +409,7 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 	temp_filename = path+"YClon_temp.txt"
 	temp = open(temp_filename, 'w')
 	out = open(out_filename, 'r')
-	out_report
+	out_report.write("sequence_id\tseq_count\tmost_common_cdr3\tclone_id\n")
 
 	#write the seq_count of each clone in row
 
