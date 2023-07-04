@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 
-version = "2.0 - Jun 20th 2023"
+version = "2.0.1 - Jul 4th 2023"
 try:
 	if sys.argv.index("--version") != -1 :
 		print("YClon version "+version)
@@ -210,7 +210,6 @@ else:
 print(filename)
 
 filename_temp = filename.split(".")
-out_filename = filename_temp[0]+"_YClon_clonotyped."+filename_temp[1]
 
 clonotyped = False
 method = "AHAM"
@@ -261,7 +260,6 @@ for x in range(1,len(sys.argv)):
 		every_in_the_folder = True
 		filename = sys.argv[x+1]
 
-out_report_name =  filename_temp[0]+"_YClon_clonotyped_report."+filename_temp[1]
 
 def build_kmers_tf_idf(sequence, ksize=ksize): 
 		ngrams = zip(*[sequence[i:] for i in range(ksize)])
@@ -411,6 +409,7 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 	temp_filename = path+"YClon_temp.txt"
 	temp = open(temp_filename, 'w')
 	out = open(out_filename, 'r')
+	out_report
 
 	#write the seq_count of each clone in row
 
@@ -426,6 +425,7 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 			temp.write(x.strip()+separator+str(len(maior[x.strip().split(separator)[i]]))+"\n")
 	temp.close()
 	out.close()
+	os.remove(out_filename)
 	os.rename(temp_filename,out_filename)
 	for i in most_common_cdr3:
 	  # print(i)
@@ -445,14 +445,15 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 path = directory_path(filename)
 
 if every_in_the_folder == False:
+	filename_temp = filename.split(".")
+	out_filename = filename_temp[0]+"_YClon_clonotyped."+filename_temp[1]
+	out_report_name =  filename_temp[0]+"_YClon_clonotyped_report."+filename_temp[1]
 	clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separator, short_output,clonotyped)
 else:
 	files = os.listdir(path)
 	for x in files:
 		if x.find(".tsv") != -1:
 			filename_temp = x.split(".")
+			out_report_name =  filename_temp[0]+"_YClon_clonotyped_report."+filename_temp[1]
 			out_filename = filename_temp[0]+"_YClon_clonotyped."+filename_temp[1]
 			clonotyping(path+"/"+x, thr, sequence_column, vcolumn, jcolumn, seqID, separator, short_output,clonotyped)
-
-
-
