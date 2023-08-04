@@ -143,3 +143,15 @@ Additionally, you have the option to utilize an accompanying R script, which is 
 You can also run YClon via the Colab notebook:
 
 https://colab.research.google.com/drive/1vQFF8e2hxMAeDSJNooVx6zaJ2hzPVbuH?usp=sharing
+
+# Cite this work
+---
+    @article{Gervsio2022,
+    doi = {10.1101/2022.02.17.480909},
+    url = {https://doi.org/10.1101/2022.02.17.480909},
+    year = {2022},
+    month = feb,
+    publisher = {Cold Spring Harbor Laboratory},
+    author = {Joao Gervasio and Alice Ferreira and Liza F. Felicori},
+    title = {Yclon: Ultrafast clustering of B cell clones from high-throughput immunoglobulin repertoire sequencing data}
+    }
