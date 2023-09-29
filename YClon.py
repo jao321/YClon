@@ -291,13 +291,13 @@ def clonotyping(filename, thr, sequence_column, vcolumn, jcolumn, seqID, separat
 
 				junc_seq = unique_cdr3[sequence_column]
 				if metric ==	"kmer":
-					clusterer = AgglomerativeClustering(distance_threshold = thr, n_clusters= None, metric="precomputed",linkage='average')
+					clusterer = AgglomerativeClustering(distance_threshold = thr, n_clusters= None, metric="precomputed",linkage='complete')
 					vectorizer = CountVectorizer(min_df=1, analyzer=build_kmers_tf_idf)
 					tf_idf_matrix = vectorizer.fit_transform(junc_seq)	
 					dist = 1 - cosine_similarity(tf_idf_matrix)
 				elif metric == "hamming":
 					input = [list(map(int,list(x.lower().replace("a","0").replace("c","1").replace("t","2").replace("g","3").replace("n","4")))) for x in junc_seq]
-					clusterer = AgglomerativeClustering(distance_threshold = 0.09, n_clusters= None,metric="precomputed",linkage='average')
+					clusterer = AgglomerativeClustering(distance_threshold = 0.09, n_clusters= None,metric="precomputed",linkage='complete')
 					dist = pairwise_distances(input,metric="hamming",n_jobs=-1)
 					
 				cluster_pre_clone = clusterer.fit(dist)
