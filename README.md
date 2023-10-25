@@ -29,7 +29,7 @@ Once you have installed the required libraries, you can run YClon by providing a
 
 To execute YClon script, you can open a terminal window and run Python3 with the script file. 
             
-              python3 path/YClon.py YClon_input_test_airr_only_essential_info.tsv
+              python3 path/to/YClon.py YClon_input_test_airr_only_essential_info.tsv
 
 ---
 # Arguments
