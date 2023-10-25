@@ -15,7 +15,7 @@ Copy YClon.py into a folder.
 
 You can download the [script file(click here with the right button of the mouse and save as...)](https://raw.githubusercontent.com/jao321/YClon/main/YClon.py) or a [folder](https://github.com/jao321/YClon/archive/refs/heads/main.zip) that contains the script, the README file and an example MiAIRR file (YClon_input_test_airr_only_essential_info.tsv). Alternatively, if you have git installed you can clone the repository with the following command line:
 
-              or if you have git installed you can clone the repository with the following command line
+              
               git clone https://github.com/jao321/YClon.git
 
 
