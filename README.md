@@ -114,6 +114,7 @@ For instance, in the example below, we observe that the first sequence belongs t
 What kind of information you can gather from it?
 
 The clonal diversity can be assessed by utilizing the command line tool:
+
                 python3 YClon.py diversity YClon_input_test_airr_only_essential_info_YClon_clonotyped.tsv
                 
 This will output the Simpson diversity, Shannon diversity indexes for that particular repertoire and the Shannon evenesss of it.
