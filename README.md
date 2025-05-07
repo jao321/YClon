@@ -1,6 +1,6 @@
 # YClon
 
-YClon repertoire has been moved to https://github.com/jao321/YClon_YPub.git
+YClon repository has been moved to https://github.com/jao321/YClon_YPub.git
 
 # Cite this work
 ---
